@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { jest } from '@jest/globals';
+import { CreateShipmentDto } from './dto/create-shipment.dto';
 import { ShipmentEntity } from './entities/shipment.entity';
 import { ShipmentRulesService } from './shipment-rules.service';
 import { ShipmentStatus } from './shipment-status.enum';
@@ -83,5 +84,35 @@ describe('ShipmentsService', () => {
     );
 
     expect(repositoryMock.findOneBy).toHaveBeenCalledTimes(1);
+  });
+
+  it('creates a shipment with created status and saves it', async () => {
+    const data: CreateShipmentDto = {
+      trackingCode: 'TRK-010',
+      destination: 'Medellín',
+    };
+
+    const builtShipment = {
+      ...data,
+      status: ShipmentStatus.CREATED,
+    } as ShipmentEntity;
+
+    const savedShipment = {
+      id: 10,
+      ...data,
+      status: ShipmentStatus.CREATED,
+    } as ShipmentEntity;
+
+    repositoryMock.create.mockReturnValue(builtShipment);
+    repositoryMock.save.mockResolvedValue(savedShipment);
+
+    const result = await service.create(data);
+
+    expect(repositoryMock.create).toHaveBeenCalledWith({
+      ...data,
+      status: ShipmentStatus.CREATED,
+    });
+    expect(repositoryMock.save).toHaveBeenCalledWith(builtShipment);
+    expect(result).toEqual(savedShipment);
   });
 });
