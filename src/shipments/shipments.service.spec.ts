@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { jest } from '@jest/globals';
@@ -144,5 +144,26 @@ describe('ShipmentsService', () => {
       }),
     );
     expect(result).toEqual(savedShipment);
+  });
+
+  it('no guarda el shipment cuando la regla rechaza el despacho', async () => {
+    const shipment = {
+      id: 5,
+      trackingCode: 'TRK-005',
+      destination: 'Cali',
+      status: ShipmentStatus.DELIVERED,
+    } as ShipmentEntity;
+
+    repositoryMock.findOneBy.mockResolvedValue(shipment);
+
+    shipmentRulesServiceMock.ensureCanBeDispatched.mockImplementation(() => {
+      throw new ConflictException('solo crea el shipment que puede ser despachado');
+    });
+
+    await expect(service.dispatch(5)).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+
+    expect(repositoryMock.save).not.toHaveBeenCalled();
   });
 });
