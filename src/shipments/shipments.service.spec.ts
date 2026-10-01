@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { jest } from '@jest/globals';
@@ -72,5 +73,15 @@ describe('ShipmentsService', () => {
 
     expect(repositoryMock.findOneBy).toHaveBeenCalledWith({ id: 7 });
     expect(result).toEqual(shipment);
+  });
+
+  it('throws NotFoundException when the shipment does not exist', async () => {
+    repositoryMock.findOneBy.mockResolvedValue(null);
+
+    await expect(service.findOne(999)).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+
+    expect(repositoryMock.findOneBy).toHaveBeenCalledTimes(1);
   });
 });
