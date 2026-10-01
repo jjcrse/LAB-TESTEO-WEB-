@@ -57,4 +57,20 @@ describe('ShipmentsService', () => {
     expect(repositoryMock.find).toHaveBeenCalledTimes(1);
     expect(result).toEqual(shipments);
   });
+
+  it('returns a shipment when the id exists', async () => {
+    const shipment = {
+      id: 7,
+      trackingCode: 'TRK-007',
+      destination: 'Bogotá',
+      status: ShipmentStatus.CREATED,
+    } as ShipmentEntity;
+
+    repositoryMock.findOneBy.mockResolvedValue(shipment);
+
+    const result = await service.findOne(7);
+
+    expect(repositoryMock.findOneBy).toHaveBeenCalledWith({ id: 7 });
+    expect(result).toEqual(shipment);
+  });
 });
